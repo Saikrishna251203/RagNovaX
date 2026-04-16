@@ -229,7 +229,7 @@ If deployment fails → restart app from dashboard
 ---
 
 ## 👩‍💻 About the Author
-** TADEPALLI SAI KRISHNA **
+ ## ** TADEPALLI SAI KRISHNA **
 ## 🎓 Education
 - B.Tech in Artificial Intelligence & Machine Learning (CGPA: 8.3/10)  
 - Consistent academic performer with strong fundamentals in AI/ML  
