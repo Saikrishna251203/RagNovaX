@@ -150,115 +150,84 @@ python -m pip install -r requirements.txt
      - Difference summary  
      - Structured comparison table  
 
----
+ ---
 
- 🧪 Demo Workflow (For Recruiters)
-
-1. Open the application  
-2. Adjust parameters:
-   - Chunk Size  
-   - Chunk Overlap  
-   - Top-K Retrieval  
-
-3. Upload a PDF  
-
-4. Ask:
-   - “Summarize key points”  
-
-5. Show:
-   - Answer  
-   - Confidence level  
-   - Source citations  
-
-6. Click:
-   - Useful / Not useful  
-
-7. Show:
-   - Sidebar insights updating (queries, feedback rate)  
-
-8. Switch to **Compare Two PDFs**  
-
-9. Upload:
-   - PDF A  
-   - PDF B  
-
-10. Ask a common question  
-
-11. Explain:
-   - Same query runs on two separate vector indexes  
-   - Outputs:
-     - Side-by-side answers  
-     - Difference summary  
-     - Structured comparison table  
-
-
+🧪 Demo Workflow (For Recruiters)
+Open the application
+Adjust parameters:
+Chunk Size
+Chunk Overlap
+Top-K Retrieval
+Upload a PDF
+Ask:
+“Summarize key points”
+Show:
+Answer
+Confidence level
+Source citations
+Click:
+Useful / Not useful
+Show:
+Sidebar insights updating (queries, feedback rate)
+Switch to Compare Two PDFs
+Upload:
+PDF A
+PDF B
+Ask a common question
+Explain:
+Same query runs on two separate vector indexes
+Outputs:
+Side-by-side answers
+Difference summary
+Structured comparison table
 🛠️ Troubleshooting
+PDF not processing
+Ensure file is a valid PDF
+Re-upload the file
+Compare not working
+Upload BOTH PDF A and PDF B
+Wait until both show “processed”
+Empty or incorrect answers
+Try increasing Top-K
+Adjust Chunk Size
+App not running
+Ensure all dependencies installed
+Restart Streamlit app
+✅ Final Launch Order
+Test project locally
+Fix any errors
+Capture screenshots (store in assets/ folder)
+Push code to GitHub
+Add screenshots to README
+Push updated README
+Deploy on Streamlit Cloud
+Add deployed URL to README
+🌐 Deployment Notes
+This project is fully Streamlit-based (no backend required)
+All processing happens locally within the app
+Steps
+Push code to GitHub
+Go to https://share.streamlit.io
+Select your repository and branch
 
-### PDF not processing
-- Ensure file is a valid PDF  
-- Re-upload the file  
+Set main file as:
 
-### Compare not working
-- Upload BOTH PDF A and PDF B  
-- Wait until both show “processed”  
-
-### Empty or incorrect answers
-- Try increasing `Top-K`  
-- Adjust `Chunk Size`  
-
-### App not running
-- Ensure all dependencies installed  
-- Restart Streamlit app  
-
-
- ✅ Final Launch Order
-
-1. Test project locally  
-2. Fix any errors  
-3. Capture screenshots (store in `assets/` folder)  
-4. Push code to GitHub  
-5. Add screenshots to README  
-6. Push updated README  
-7. Deploy on Streamlit Cloud  
-8. Add deployed URL to README  
-
-
-  🌐 Deployment Notes
-
-- This project is fully **Streamlit-based (no backend required)**  
-- All processing happens locally within the app  
-
-### Steps:
-
-1. Push code to GitHub  
-2. Go to https://share.streamlit.io  
-3. Select your repository and branch  
-4. Set main file as:
- app.py
-5. Click Deploy  
-  
-### Notes:
-- Ensure `requirements.txt` includes all dependencies  
-- If deployment fails → restart app from dashboard  
-
-
+app.py
+Click Deploy
+Notes
+Ensure requirements.txt includes all dependencies
+If deployment fails → restart app from dashboard
 👩‍💻 About the Author
 🎓 Education
 B.Tech in Artificial Intelligence & Machine Learning
-
 Achieved Highest CGPA – College Topper
-
 🛠️ Skills & Expertise
 Python, SQL
-
 Large Language Models (LLMs), Prompt Engineering
-
-Retrieval-Augmented Generation (RAG) Systems, AI Agents
-
+Retrieval-Augmented Generation (RAG), AI Agents
 FAISS, Vector Databases
-
 🏆 Achievements
 Ranked in the Top 1% globally on Unstop
-
 📌 Goal
+
 To build impactful solutions in AI, Machine Learning, and Large Language Models (LLMs)
