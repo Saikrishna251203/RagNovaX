@@ -262,25 +262,60 @@ if q3.button("Find deadlines"):
 if q4.button("Risk highlights"):
     st.session_state.query_input = "What risks are described in this document?"
 
+# ================= INITIAL SAFE DECLARATION =================
+file = None
+file_a = None
+file_b = None
+
+# ================= MODE SELECTION =================
+mode = st.radio("Select Mode", ["Single Document Q&A", "Compare Two PDFs"])
+
+chunk_size = st.slider("Chunk Size", 200, 2000, 1000)
+chunk_overlap = st.slider("Chunk Overlap", 0, 500, 100)
+
+
+# ================= SINGLE DOCUMENT MODE =================
 if mode == "Single Document Q&A":
+
     file = st.file_uploader("Upload PDF", type=["pdf"], key="single_upload")
 
-    if file:
+    if file is not None:
+
         with open("temp_single.pdf", "wb") as f:
             f.write(file.read())
 
-        # ✅ CORRECT INDENTATION (same level as 'with')
         texts, index = process_pdf("temp_single.pdf", chunk_size, chunk_overlap)
 
         st.session_state["single_store"] = (texts, index)
-        st.success(f"Document processed. Chunks created: {len(texts)}")
+
+        st.success(f"Document processed successfully. Chunks created: {len(texts)}")
+
+
+# ================= COMPARE MODE =================
 else:
+
     ca, cb = st.columns(2)
+
     with ca:
         file_a = st.file_uploader("Upload PDF A", type=["pdf"], key="upload_a")
+
     with cb:
         file_b = st.file_uploader("Upload PDF B", type=["pdf"], key="upload_b")
 
+    if file_a is not None and file_b is not None:
+
+        with open("temp_a.pdf", "wb") as f:
+            f.write(file_a.read())
+
+        with open("temp_b.pdf", "wb") as f:
+            f.write(file_b.read())
+
+        texts_a, index_a = process_pdf("temp_a.pdf", chunk_size, chunk_overlap)
+        texts_b, index_b = process_pdf("temp_b.pdf", chunk_size, chunk_overlap)
+
+        st.session_state["compare_store"] = (texts_a, index_a, texts_b, index_b)
+
+        st.success("Both PDFs processed successfully")
   # ================= PDF A PROCESS =================
 
 # ================= PDF A PROCESS =================
