@@ -1,4 +1,4 @@
-## 🧠 RAGNova X (KnowFlow AI)
+## 🧠 RAGNova X 
 
 AI Document Intelligence Studio for:
 - PDF Q&A with source citations
@@ -110,18 +110,6 @@ python -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-
----
-
-## 🎯 Problem Statement
-
-Organizations and individuals often struggle to extract meaningful insights from large PDF documents such as reports, policies, contracts, or resumes. Traditional search methods fail to provide contextual answers, comparisons, and explainability.
-
-**RAGNova X solves this by:**
-- Enabling intelligent question-answering over PDFs
-- Providing explainable answers with source citations
-- Allowing side-by-side comparison of two documents
-- Offering confidence scoring and feedback-driven insights
 
 ---
 
