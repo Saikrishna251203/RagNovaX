@@ -149,82 +149,113 @@ python -m pip install -r requirements.txt
      - Difference summary  
      - Structured comparison table  
 
- ---
+---
 
-## 🧪 Demo Workflow (For Recruiters)
-Open the application
-Adjust parameters:
-Chunk Size
-Chunk Overlap
-Top-K Retrieval
-Upload a PDF
-Ask:
-“Summarize key points”
-Show:
-Answer
-Confidence level
-Source citations
-Click:
-Useful / Not useful
-Show:
-Sidebar insights updating (queries, feedback rate)
-Switch to Compare Two PDFs
-Upload:
-PDF A
-PDF B
-Ask a common question
-Explain:
-Same query runs on two separate vector indexes
-Outputs:
-Side-by-side answers
-Difference summary
-Structured comparison table
+## 🧪 Main Workflow
+
+* Open the application
+* Adjust parameters:
+
+  * Chunk Size
+  * Chunk Overlap
+  * Top-K Retrieval
+* Upload a PDF
+* Ask a question (example: “Summarize key points”)
+
+---
+
+## 📊 Output Display
+
+* Answer is generated
+* Shows:
+
+  * Confidence level
+  * Source citations
+* User can click:
+
+  * “Useful”
+  * “Not useful”
+
+---
+
+## 📈 Sidebar Insights
+
+* Live updating panel shows:
+
+  * Queries history
+  * Feedback rate
+  * System interaction stats
+
+---
+
+## 🔄 Compare Two PDFs Mode
+
+* Switch to “Compare Mode”
+* Upload:
+
+  * PDF A
+  * PDF B
+* Ask a common question
+* System:
+
+  * Runs same query on both vector indexes
+  * Generates two independent answers
+
+### Output includes:
+
+* Side-by-side answers
+* Difference summary
+* Structured comparison table
 
 ---
 
 ## 🛠️ Troubleshooting
-PDF not processing
-Ensure file is a valid PDF
-Re-upload the file
-Compare not working
-Upload BOTH PDF A and PDF B
-Wait until both show “processed”
-Empty or incorrect answers
-Try increasing Top-K
-Adjust Chunk Size
-App not running
-Ensure all dependencies installed
-Restart Streamlit app
+
+* **PDF not processing**
+
+  * Ensure file is a valid PDF
+  * Re-upload the file
+
+* **Compare not working**
+
+  * Upload BOTH PDF A and PDF B
+  * Wait until both show “processed”
+
+* **Empty or incorrect answers**
+
+  * Increase Top-K
+  * Adjust Chunk Size
+
+* **App not running**
+
+  * Ensure all dependencies are installed
+  * Restart Streamlit app
 
 ----
 
 ## ✅ Final Launch Order
-Test project locally
-Fix any errors
-Capture screenshots (store in assets/ folder)
-Push code to GitHub
-Add screenshots to README
-Push updated README
-Deploy on Streamlit Cloud
-Add deployed URL to README
+* Test project locally
+* Fix any errors
+* Capture screenshots (store in assets/ folder)
+* Push code to GitHub
+* Add screenshots to README
+* Push updated README
+* Deploy on Streamlit Cloud
+* Add deployed URL to README
 
 ----
 
  ## 🌐 Deployment Notes
-This project is fully Streamlit-based (no backend required)
-All processing happens locally within the app
-Steps
-Push code to GitHub
-Go to https://share.streamlit.io
-Select your repository and branch
-
-Set main file as:
-
-app.py
-Click Deploy
-Notes:
-Ensure requirements.txt includes all dependencies
-If deployment fails → restart app from dashboard
+* This project is fully Streamlit-based (no backend required)
+* All processing happens locally within the app
+ ## Steps to Push code to GitHub
+* Go to https://share.streamlit.io
+* Select your repository and branch
+* Set main file as: app.py
+* Click Deploy
+ ## Notes:
+ * Ensure requirements.txt includes all dependencies
+* If deployment fails → restart app from dashboard
 
 ---
 
