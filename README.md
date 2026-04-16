@@ -151,7 +151,7 @@ python -m pip install -r requirements.txt
 
  ---
 
-🧪 Demo Workflow (For Recruiters)
+## 🧪 Demo Workflow (For Recruiters)
 Open the application
 Adjust parameters:
 Chunk Size
@@ -182,7 +182,7 @@ Structured comparison table
 
 ---
 
-🛠️ Troubleshooting
+## 🛠️ Troubleshooting
 PDF not processing
 Ensure file is a valid PDF
 Re-upload the file
@@ -198,7 +198,7 @@ Restart Streamlit app
 
 ----
 
-✅ Final Launch Order
+## ✅ Final Launch Order
 Test project locally
 Fix any errors
 Capture screenshots (store in assets/ folder)
@@ -210,7 +210,7 @@ Add deployed URL to README
 
 ----
 
-🌐 Deployment Notes
+ ## 🌐 Deployment Notes
 This project is fully Streamlit-based (no backend required)
 All processing happens locally within the app
 Steps
@@ -228,17 +228,18 @@ If deployment fails → restart app from dashboard
 
 ---
 
-👩‍💻 About the Author
-🎓 Education
+## 👩‍💻 About the Author
+## 🎓 Education
 B.Tech in Artificial Intelligence & Machine Learning
 Achieved Highest CGPA – College Topper
-🛠️ Skills & Expertise
+ ## 🛠️ Skills & Expertise
 Python, SQL
 Large Language Models (LLMs), Prompt Engineering
 Retrieval-Augmented Generation (RAG), AI Agents
 FAISS, Vector Databases
-🏆 Achievements
+ ## 🏆 Achievements
 Ranked in the Top 1% globally on Unstop
-📌 Goal
+
+ ## 📌 Goal
 
 To build impactful solutions in AI, Machine Learning, and Large Language Models (LLMs)
