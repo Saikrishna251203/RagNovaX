@@ -229,9 +229,10 @@ If deployment fails → restart app from dashboard
 ---
 
 ## 👩‍💻 About the Author
+** TADEPALLI SAI KRISHNA **
 ## 🎓 Education
-B.Tech in Artificial Intelligence & Machine Learning
-Achieved Highest CGPA – College Topper
+- B.Tech in Artificial Intelligence & Machine Learning (CGPA: 8.3/10)  
+- Consistent academic performer with strong fundamentals in AI/ML  
  ## 🛠️ Skills & Expertise
 Python, SQL
 Large Language Models (LLMs), Prompt Engineering
