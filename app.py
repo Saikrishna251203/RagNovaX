@@ -2,7 +2,6 @@ import json
 import re
 from datetime import datetime
 
-import requests
 import streamlit as st
 
 from db import (
@@ -13,6 +12,7 @@ from db import (
     save_feedback,
     save_query,
 )
+from rag_pipeline import process_pdf, query_rag
 
 st.set_page_config(page_title="RAGNova X", page_icon="🧠", layout="wide")
 
@@ -264,20 +264,16 @@ if q4.button("Risk highlights"):
 
 if mode == "Single Document Q&A":
     file = st.file_uploader("Upload PDF", type=["pdf"], key="single_upload")
+
     if file:
         with open("temp_single.pdf", "wb") as f:
             f.write(file.read())
-        up = requests.post(
-            "http://127.0.0.1:8000/upload",
-            params={
-                "file_path": "temp_single.pdf",
-                "doc_id": "single",
-                "chunk_size": chunk_size,
-                "chunk_overlap": chunk_overlap,
-            },
-            timeout=60,
-        ).json()
-        st.success(f"Document processed. Chunks created: {up.get('chunks', 0)}")
+
+        # ✅ CORRECT INDENTATION (same level as 'with')
+        texts, index = process_pdf("temp_single.pdf", chunk_size, chunk_overlap)
+
+        st.session_state["single_store"] = (texts, index)
+        st.success(f"Document processed. Chunks created: {len(texts)}")
 else:
     ca, cb = st.columns(2)
     with ca:
@@ -285,64 +281,60 @@ else:
     with cb:
         file_b = st.file_uploader("Upload PDF B", type=["pdf"], key="upload_b")
 
-    if file_a:
+  # ================= PDF A PROCESS =================
+
+# ================= PDF A PROCESS =================
+if file_a:
+    try:
         with open("temp_a.pdf", "wb") as f:
             f.write(file_a.read())
-        try:
-            resp_a = requests.post(
-                "http://127.0.0.1:8000/upload",
-                params={
-                    "file_path": "temp_a.pdf",
-                    "doc_id": "A",
-                    "chunk_size": chunk_size,
-                    "chunk_overlap": chunk_overlap,
-                },
-                timeout=60,
-            )
-            payload_a = resp_a.json() if resp_a.content else {}
-            if resp_a.ok and payload_a.get("status") == "processed":
-                st.session_state.compare_ready_a = True
-                st.success("PDF A processed")
-            else:
-                st.session_state.compare_ready_a = False
-                st.error(f"Failed to process PDF A: {payload_a.get('message', 'Backend error')}")
-        except requests.RequestException:
-            st.session_state.compare_ready_a = False
-            st.error("Failed to process PDF A: backend not reachable. Start FastAPI first.")
 
-    if file_b:
+        texts_a, index_a = process_pdf("temp_a.pdf", 300, 80)
+
+        st.session_state["A_store"] = (texts_a, index_a)
+        st.session_state.compare_ready_a = True
+        st.success("PDF A processed")
+
+    except Exception:
+        st.session_state.compare_ready_a = False
+        st.error("Failed to process PDF A: backend not reachable.")
+
+else:
+    st.session_state.compare_ready_a = False
+
+
+# ================= PDF B PROCESS =================
+if file_b:
+    try:
         with open("temp_b.pdf", "wb") as f:
             f.write(file_b.read())
-        try:
-            resp_b = requests.post(
-                "http://127.0.0.1:8000/upload",
-                params={
-                    "file_path": "temp_b.pdf",
-                    "doc_id": "B",
-                    "chunk_size": chunk_size,
-                    "chunk_overlap": chunk_overlap,
-                },
-                timeout=60,
-            )
-            payload_b = resp_b.json() if resp_b.content else {}
-            if resp_b.ok and payload_b.get("status") == "processed":
-                st.session_state.compare_ready_b = True
-                st.success("PDF B processed")
-            else:
-                st.session_state.compare_ready_b = False
-                st.error(f"Failed to process PDF B: {payload_b.get('message', 'Backend error')}")
-        except requests.RequestException:
-            st.session_state.compare_ready_b = False
-            st.error("Failed to process PDF B: backend not reachable. Start FastAPI first.")
 
-    missing_docs = []
-    if not st.session_state.compare_ready_a:
-        missing_docs.append("PDF A")
-    if not st.session_state.compare_ready_b:
-        missing_docs.append("PDF B")
-    if missing_docs:
-        st.info(f"Upload {', '.join(missing_docs)} to run compare query.")
+        texts_b, index_b = process_pdf("temp_b.pdf", 300, 80)
 
+        st.session_state["B_store"] = (texts_b, index_b)
+        st.session_state.compare_ready_b = True
+        st.success("PDF B processed")
+
+    except Exception:
+        st.session_state.compare_ready_b = False
+        st.error("Failed to process PDF B")
+
+else:
+    st.session_state.compare_ready_b = False
+
+
+# ================= CHECK =================
+missing_docs = []
+if not st.session_state.compare_ready_a:
+    missing_docs.append("PDF A")
+if not st.session_state.compare_ready_b:
+    missing_docs.append("PDF B")
+
+if missing_docs and mode == "Compare Two PDFs":
+    st.info(f"Upload {', '.join(missing_docs)} to run compare query.")
+
+
+# ================= QUERY =================
 query = st.text_input("Ask question", key="query_input")
 ask = st.button("Ask")
 
@@ -350,116 +342,42 @@ if ask and query:
     save_query(query)
     st.session_state.last_query = query
 
+    # -------- SINGLE --------
     if mode == "Single Document Q&A":
-        payload = requests.get(
-            "http://127.0.0.1:8000/query",
-            params={"q": query, "doc_id": "single", "top_k": top_k},
-            timeout=60,
-        ).json()
-        if "error" in payload:
-            st.error(payload["error"])
+        texts, index = st.session_state.get("single_store", ([], None))
+
+        if not texts or index is None:
+            st.error("Please upload a document first.")
         else:
-            data = payload["results"]
-            answer, confidence = build_answer(data)
-            st.session_state.last_answer = answer
-            st.session_state.last_confidence = confidence
-            st.session_state.last_sources = data[:3]
+            data = query_rag(query, texts, index, 5)
+
+            if data:
+                answer = data[0][0][:700]
+            else:
+                answer = "Not found"
+
+            st.write(answer)
+
+    # -------- COMPARE --------
     else:
         if not st.session_state.compare_ready_a or not st.session_state.compare_ready_b:
-            missing_docs = []
-            if not st.session_state.compare_ready_a:
-                missing_docs.append("PDF A")
-            if not st.session_state.compare_ready_b:
-                missing_docs.append("PDF B")
-            st.error(f"Please upload {', '.join(missing_docs)} before compare query.")
+            st.error("Upload both PDFs before comparing.")
             st.stop()
 
-        res_a = requests.get(
-            "http://127.0.0.1:8000/query",
-            params={"q": query, "doc_id": "A", "top_k": top_k},
-            timeout=60,
-        ).json()
-        res_b = requests.get(
-            "http://127.0.0.1:8000/query",
-            params={"q": query, "doc_id": "B", "top_k": top_k},
-            timeout=60,
-        ).json()
-        if "error" in res_a or "error" in res_b:
-            st.error("Compare documents are not ready. Re-upload PDF A and PDF B.")
+        texts_a, index_a = st.session_state.get("A_store", ([], None))
+        texts_b, index_b = st.session_state.get("B_store", ([], None))
+
+        if not texts_a or not texts_b:
+            st.error("Re-upload PDFs.")
         else:
-            data_a = res_a["results"]
-            data_b = res_b["results"]
-            ans_a, _ = build_answer(data_a)
-            ans_b, _ = build_answer(data_b)
-            st.session_state.compare_answers = {"A": ans_a, "B": ans_b}
-            st.session_state.compare_sources = {"A": data_a[:3], "B": data_b[:3]}
-            st.session_state.compare_diff = build_compare_summary(query, data_a, data_b)
-            table_md, verdict = build_compare_table_and_verdict(data_a, data_b)
-            st.session_state.compare_table = table_md
-            st.session_state.compare_verdict = verdict
+            data_a = query_rag(query, texts_a, index_a, 5)
+            data_b = query_rag(query, texts_b, index_b, 5)
 
-if mode == "Single Document Q&A" and st.session_state.last_answer:
-    st.subheader("Answer")
-    st.markdown(f"<div class='card'>{st.session_state.last_answer}</div>", unsafe_allow_html=True)
-    st.write(f"Confidence: **{st.session_state.last_confidence}**")
+            ans_a = data_a[0][0][:500] if data_a else "No result"
+            ans_b = data_b[0][0][:500] if data_b else "No result"
 
-    src_col, fb_col = st.columns([2, 1])
-    with src_col:
-        st.subheader("Source Citations")
-        for i, (chunk, score) in enumerate(st.session_state.last_sources, start=1):
-            st.markdown(
-                f"<div class='card'><b>{i}. Score: {round(score, 3)}</b><br>{chunk[:280]}...</div>",
-                unsafe_allow_html=True,
-            )
-    with fb_col:
-        st.subheader("Actions")
-        if st.button("Useful"):
-            save_feedback(st.session_state.last_query, st.session_state.last_answer, "up")
-            st.success("Feedback saved")
-        if st.button("Not useful"):
-            save_feedback(st.session_state.last_query, st.session_state.last_answer, "down")
-            st.success("Feedback saved")
-        if st.button("Save Highlight"):
-            add_highlight(mode)
-            st.success("Saved to highlights")
-        if st.button("Clear Summary"):
-            st.session_state.last_answer = ""
-            st.session_state.last_sources = []
-            st.session_state.last_confidence = ""
-            st.rerun()
+            st.subheader("Answer A")
+            st.write(ans_a)
 
-if mode == "Compare Two PDFs" and st.session_state.compare_answers["A"]:
-    st.subheader("Comparison")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown("### Document A")
-        st.markdown(f"<div class='card'>{st.session_state.compare_answers['A']}</div>", unsafe_allow_html=True)
-    with col_b:
-        st.markdown("### Document B")
-        st.markdown(f"<div class='card'>{st.session_state.compare_answers['B']}</div>", unsafe_allow_html=True)
-    st.markdown("### Difference Summary")
-    st.markdown(f"<div class='card'>{st.session_state.compare_diff}</div>", unsafe_allow_html=True)
-    st.markdown("### Structured Comparison Table")
-    st.markdown(st.session_state.compare_table)
-    st.success(f"Verdict: {st.session_state.compare_verdict}")
-
-# Feature 2: Session report export
-st.markdown("---")
-st.subheader("Saved Highlight")
-if st.session_state.saved_highlight:
-    item = st.session_state.saved_highlight
-    st.markdown(
-        f"<div class='card'><b>{item['time']}</b> | {item['mode']}<br>"
-        f"<b>Query:</b> {item['query']}<br>"
-        f"<b>Confidence:</b> {item['confidence']}<br>"
-        f"{item['answer'][:220]}...</div>",
-        unsafe_allow_html=True,
-    )
-    st.download_button(
-        "Download Highlight (JSON)",
-        data=json.dumps(item, indent=2),
-        file_name="knowflow_highlight.json",
-        mime="application/json",
-    )
-else:
-    st.info("No highlight saved yet. Use 'Save Highlight' after getting an answer.")
+            st.subheader("Answer B")
+            st.write(ans_b)
