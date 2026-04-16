@@ -99,7 +99,6 @@ Organizations and individuals often struggle to extract meaningful insights from
 
 ## 🚀 Local Setup
 
-```bash
 # 1) Create virtual env
 python -m venv .venv
 
@@ -180,6 +179,9 @@ Outputs:
 Side-by-side answers
 Difference summary
 Structured comparison table
+
+---
+
 🛠️ Troubleshooting
 PDF not processing
 Ensure file is a valid PDF
@@ -193,6 +195,9 @@ Adjust Chunk Size
 App not running
 Ensure all dependencies installed
 Restart Streamlit app
+
+----
+
 ✅ Final Launch Order
 Test project locally
 Fix any errors
@@ -202,6 +207,9 @@ Add screenshots to README
 Push updated README
 Deploy on Streamlit Cloud
 Add deployed URL to README
+
+----
+
 🌐 Deployment Notes
 This project is fully Streamlit-based (no backend required)
 All processing happens locally within the app
@@ -214,9 +222,12 @@ Set main file as:
 
 app.py
 Click Deploy
-Notes
+Notes:
 Ensure requirements.txt includes all dependencies
 If deployment fails → restart app from dashboard
+
+---
+
 👩‍💻 About the Author
 🎓 Education
 B.Tech in Artificial Intelligence & Machine Learning
