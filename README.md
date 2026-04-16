@@ -109,11 +109,9 @@ python -m venv .venv
 # 3) Install dependencies
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+ ---
 
-
----
-
-## 🧪 Demo Workflow (For Recruiters)
+  ##
 
 1. Open the application  
 2. Adjust parameters:
@@ -122,6 +120,7 @@ python -m pip install -r requirements.txt
    - Top-K Retrieval  
 
 3. Upload a PDF  
+
 4. Ask:
    - “Summarize key points”  
 
@@ -153,7 +152,47 @@ python -m pip install -r requirements.txt
 
 ---
 
-## 🛠️ Troubleshooting
+ 🧪 Demo Workflow (For Recruiters)
+
+1. Open the application  
+2. Adjust parameters:
+   - Chunk Size  
+   - Chunk Overlap  
+   - Top-K Retrieval  
+
+3. Upload a PDF  
+
+4. Ask:
+   - “Summarize key points”  
+
+5. Show:
+   - Answer  
+   - Confidence level  
+   - Source citations  
+
+6. Click:
+   - Useful / Not useful  
+
+7. Show:
+   - Sidebar insights updating (queries, feedback rate)  
+
+8. Switch to **Compare Two PDFs**  
+
+9. Upload:
+   - PDF A  
+   - PDF B  
+
+10. Ask a common question  
+
+11. Explain:
+   - Same query runs on two separate vector indexes  
+   - Outputs:
+     - Side-by-side answers  
+     - Difference summary  
+     - Structured comparison table  
+
+
+🛠️ Troubleshooting
 
 ### PDF not processing
 - Ensure file is a valid PDF  
@@ -164,16 +203,15 @@ python -m pip install -r requirements.txt
 - Wait until both show “processed”  
 
 ### Empty or incorrect answers
-- Try increasing `Top-K`
-- Adjust `Chunk Size`
+- Try increasing `Top-K`  
+- Adjust `Chunk Size`  
 
 ### App not running
 - Ensure all dependencies installed  
 - Restart Streamlit app  
 
----
 
-## ✅ Final Launch Order
+ ✅ Final Launch Order
 
 1. Test project locally  
 2. Fix any errors  
@@ -184,35 +222,43 @@ python -m pip install -r requirements.txt
 7. Deploy on Streamlit Cloud  
 8. Add deployed URL to README  
 
----
 
-## 🌐 Deployment Notes
+  🌐 Deployment Notes
 
 - This project is fully **Streamlit-based (no backend required)**  
 - All processing happens locally within the app  
 
 ### Steps:
+
 1. Push code to GitHub  
 2. Go to https://share.streamlit.io  
-3. Select repository and branch  
+3. Select your repository and branch  
 4. Set main file as:
-       app.py
-
+ app.py
 5. Click Deploy  
-
+  
 ### Notes:
 - Ensure `requirements.txt` includes all dependencies  
 - If deployment fails → restart app from dashboard  
 
----
 
-## 👩‍💻 About the Author
+👩‍💻 About the Author
+🎓 Education
+B.Tech in Artificial Intelligence & Machine Learning
 
-**TADEPALLI SAI KRISHNA**
+Achieved Highest CGPA – College Topper
 
-- B.Tech in AI/ML  
-- Skilled in Python, SQL, Power BI, and Machine Learning  
-- Focused on AI, LLMs, and Data Engineering  
-- Passionate about building real-world AI products  
+🛠️ Skills & Expertise
+Python, SQL
 
-📌 Goal: To build scalable AI solutions and secure high-impact roles in AI/ML and Data Engine
+Large Language Models (LLMs), Prompt Engineering
+
+Retrieval-Augmented Generation (RAG) Systems, AI Agents
+
+FAISS, Vector Databases
+
+🏆 Achievements
+Ranked in the Top 1% globally on Unstop
+
+📌 Goal
+To build impactful solutions in AI, Machine Learning, and Large Language Models (LLMs)
