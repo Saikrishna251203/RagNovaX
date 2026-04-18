@@ -247,12 +247,17 @@ s4.markdown(
     f"<div class='stat-badge'><b>Positive Feedback</b><br>{stats['positive_rate']}%</div>",
     unsafe_allow_html=True,
 )
+# ================= MODE =================
+mode = st.radio(
+    "Workspace Mode",
+    ["Single PDF Q&A", "Upload 2 PDFs (Multi-Doc)", "Compare 2 PDFs"],
+    horizontal=True
+)
 
-mode = st.radio("Workspace Mode", ["Single Document Q&A", "Compare Two PDFs"], horizontal=True)
-
-# Feature 1: Quick prompt chips
+# ================= QUICK PROMPTS =================
 st.write("Quick prompts")
 q1, q2, q3, q4 = st.columns(4)
+
 if q1.button("Summarize key points"):
     st.session_state.query_input = "Summarize the key points from this document."
 if q2.button("List action items"):
@@ -262,159 +267,120 @@ if q3.button("Find deadlines"):
 if q4.button("Risk highlights"):
     st.session_state.query_input = "What risks are described in this document?"
 
-# ================= INITIAL SAFE DECLARATION =================
-file = None
-file_a = None
-file_b = None
+# ================= INIT =================
+file_a, file_b = None, None
 
-
-
-# ================= FILE UPLOAD =================
+# ================= UPLOAD =================
 st.subheader("📂 Upload PDFs")
 
-if mode == "Single Document Q&A":
-    file_a = st.file_uploader("Upload PDF", type="pdf", key="single")
+# -------- SINGLE --------
+if mode == "Single PDF Q&A":
+    file_a = st.file_uploader("Upload PDF", type="pdf", key="single_pdf")
 
-elif mode == "Compare Two PDFs":
+# -------- MULTI DOC --------
+elif mode == "Upload 2 PDFs (Multi-Doc)":
     col1, col2 = st.columns(2)
 
     with col1:
-        file_a = st.file_uploader("Upload PDF A", type="pdf", key="pdf_a")
-
+        file_a = st.file_uploader("Upload PDF A", type="pdf", key="multi_a")
     with col2:
-        file_b = st.file_uploader("Upload PDF B", type="pdf", key="pdf_b")
+        file_b = st.file_uploader("Upload PDF B", type="pdf", key="multi_b")
 
+    if not file_a or not file_b:
+        st.info("Upload both PDFs to query across documents.")
 
-# ================= SINGLE DOCUMENT MODE =================
-if mode == "Single Document Q&A":
+# -------- COMPARE --------
+elif mode == "Compare 2 PDFs":
+    col1, col2 = st.columns(2)
 
-    file = st.file_uploader("Upload PDF", type=["pdf"], key="single_upload")
+    with col1:
+        file_a = st.file_uploader("Upload PDF A", type="pdf", key="compare_a")
+    with col2:
+        file_b = st.file_uploader("Upload PDF B", type="pdf", key="compare_b")
 
-    if file is not None:
+    if not file_a or not file_b:
+        st.warning("Upload both PDFs to compare.")
 
-        with open("temp_single.pdf", "wb") as f:
-            f.write(file.read())
+# ================= PROCESSING =================
 
-        texts, index = process_pdf("temp_single.pdf", chunk_size, chunk_overlap)
+# -------- SINGLE --------
+if mode == "Single PDF Q&A" and file_a:
+    with open("temp_single.pdf", "wb") as f:
+        f.write(file_a.read())
 
-        st.session_state["single_store"] = (texts, index)
+    texts, index = process_pdf("temp_single.pdf", chunk_size, chunk_overlap)
+    st.session_state["single_store"] = (texts, index)
 
-        st.success(f"Document processed successfully. Chunks created: {len(texts)}")
+    st.success(f"Processed: {len(texts)} chunks")
 
+# -------- MULTI DOC --------
+elif mode == "Upload 2 PDFs (Multi-Doc)" and file_a and file_b:
+    with open("temp_a.pdf", "wb") as f:
+        f.write(file_a.read())
+    with open("temp_b.pdf", "wb") as f:
+        f.write(file_b.read())
 
-# ================= COMPARE MODE =================
-else:
+    texts_a, index_a = process_pdf("temp_a.pdf", chunk_size, chunk_overlap)
+    texts_b, index_b = process_pdf("temp_b.pdf", chunk_size, chunk_overlap)
 
-    ca, cb = st.columns(2)
+    # Merge both docs
+    texts = texts_a + texts_b
+    index = index_a  # (or rebuild combined index if needed)
 
-    with ca:
-        file_a = st.file_uploader("Upload PDF A", type=["pdf"], key="upload_a")
+    st.session_state["multi_store"] = (texts, index)
 
-    with cb:
-        file_b = st.file_uploader("Upload PDF B", type=["pdf"], key="upload_b")
+    st.success("Both PDFs merged & processed")
 
-    if file_a is not None and file_b is not None:
+# -------- COMPARE --------
+elif mode == "Compare 2 PDFs" and file_a and file_b:
+    with open("temp_a.pdf", "wb") as f:
+        f.write(file_a.read())
+    with open("temp_b.pdf", "wb") as f:
+        f.write(file_b.read())
 
-        with open("temp_a.pdf", "wb") as f:
-            f.write(file_a.read())
+    texts_a, index_a = process_pdf("temp_a.pdf", chunk_size, chunk_overlap)
+    texts_b, index_b = process_pdf("temp_b.pdf", chunk_size, chunk_overlap)
 
-        with open("temp_b.pdf", "wb") as f:
-            f.write(file_b.read())
+    st.session_state["A_store"] = (texts_a, index_a)
+    st.session_state["B_store"] = (texts_b, index_b)
 
-        texts_a, index_a = process_pdf("temp_a.pdf", chunk_size, chunk_overlap)
-        texts_b, index_b = process_pdf("temp_b.pdf", chunk_size, chunk_overlap)
-
-        st.session_state["compare_store"] = (texts_a, index_a, texts_b, index_b)
-
-        st.success("Both PDFs processed successfully")
-  # ================= PDF A PROCESS =================
-
-# ================= PDF A PROCESS =================
-if file_a:
-    try:
-        with open("temp_a.pdf", "wb") as f:
-            f.write(file_a.read())
-
-        texts_a, index_a = process_pdf("temp_a.pdf", 300, 80)
-
-        st.session_state["A_store"] = (texts_a, index_a)
-        st.session_state.compare_ready_a = True
-        st.success("PDF A processed")
-
-    except Exception:
-        st.session_state.compare_ready_a = False
-        st.error("Failed to process PDF A: backend not reachable.")
-
-else:
-    st.session_state.compare_ready_a = False
-
-
-# ================= PDF B PROCESS =================
-if file_b:
-    try:
-        with open("temp_b.pdf", "wb") as f:
-            f.write(file_b.read())
-
-        texts_b, index_b = process_pdf("temp_b.pdf", 300, 80)
-
-        st.session_state["B_store"] = (texts_b, index_b)
-        st.session_state.compare_ready_b = True
-        st.success("PDF B processed")
-
-    except Exception:
-        st.session_state.compare_ready_b = False
-        st.error("Failed to process PDF B")
-
-else:
-    st.session_state.compare_ready_b = False
-
-
-# ================= CHECK =================
-missing_docs = []
-if not st.session_state.compare_ready_a:
-    missing_docs.append("PDF A")
-if not st.session_state.compare_ready_b:
-    missing_docs.append("PDF B")
-
-if missing_docs and mode == "Compare Two PDFs":
-    st.info(f"Upload {', '.join(missing_docs)} to run compare query.")
-
+    st.success("Both PDFs ready for comparison")
 
 # ================= QUERY =================
 query = st.text_input("Ask question", key="query_input")
 ask = st.button("Ask")
 
 if ask and query:
-    save_query(query)
-    st.session_state.last_query = query
 
     # -------- SINGLE --------
-    if mode == "Single Document Q&A":
+    if mode == "Single PDF Q&A":
         texts, index = st.session_state.get("single_store", ([], None))
 
-        if not texts or index is None:
-            st.error("Please upload a document first.")
+        if not texts:
+            st.error("Upload PDF first")
         else:
             data = query_rag(query, texts, index, 5)
+            answer = data[0][0][:700] if data else "Not found"
+            st.write(answer)
 
-            if data:
-                answer = data[0][0][:700]
-            else:
-                answer = "Not found"
+    # -------- MULTI --------
+    elif mode == "Upload 2 PDFs (Multi-Doc)":
+        texts, index = st.session_state.get("multi_store", ([], None))
 
+        if not texts:
+            st.error("Upload both PDFs")
+        else:
+            data = query_rag(query, texts, index, 5)
+            answer = data[0][0][:700] if data else "Not found"
             st.write(answer)
 
     # -------- COMPARE --------
-    else:
-        if not st.session_state.compare_ready_a or not st.session_state.compare_ready_b:
-            st.error("Upload both PDFs before comparing.")
-            st.stop()
-
+    elif mode == "Compare 2 PDFs":
         texts_a, index_a = st.session_state.get("A_store", ([], None))
         texts_b, index_b = st.session_state.get("B_store", ([], None))
 
         if not texts_a or not texts_b:
-            st.error("Re-upload PDFs.")
+            st.error("Upload both PDFs")
         else:
             data_a = query_rag(query, texts_a, index_a, 5)
             data_b = query_rag(query, texts_b, index_b, 5)
@@ -422,8 +388,11 @@ if ask and query:
             ans_a = data_a[0][0][:500] if data_a else "No result"
             ans_b = data_b[0][0][:500] if data_b else "No result"
 
-            st.subheader("Answer A")
-            st.write(ans_a)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Answer A")
+                st.write(ans_a)
 
-            st.subheader("Answer B")
-            st.write(ans_b)
+            with col2:
+                st.subheader("Answer B")
+                st.write(ans_b)
