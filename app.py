@@ -3,6 +3,9 @@ import re
 from datetime import datetime
 
 import streamlit as st
+# ================= HISTORY INIT =================
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 from db import (
     clear_history,
@@ -214,18 +217,85 @@ with st.sidebar.expander("Notes: Parameter Meaning", expanded=False):
 """
     )
 
-st.sidebar.subheader("History")
-if st.sidebar.button("Delete History"):
-    clear_history()
-    st.sidebar.success("History deleted")
+# ================= HISTORY UI =================
+st.sidebar.subheader("🕘 History")
+
+if st.session_state.history:
+
+    for i, item in enumerate(st.session_state.history):
+
+        col1, col2 = st.sidebar.columns([4,1])
+
+        # Click to reuse query
+        if col1.button(item["q"][:30] + "...", key=f"hist_{i}"):
+            st.session_state.query_input = item["q"]
+
+        # Delete button
+        if col2.button("❌", key=f"del_{i}"):
+            st.session_state.history.pop(i)
+            st.rerun()
+
+else:
+    st.sidebar.write("No history yet")
+
+# Clear all
+if st.sidebar.button("🗑 Clear All History"):
+    st.session_state.history = []
     st.rerun()
 
-for row_id, query_text in get_history_with_ids():
-    c1, c2 = st.sidebar.columns([5, 1])
-    c1.caption(query_text[:45] + ("..." if len(query_text) > 45 else ""))
-    if c2.button("🗑️", key=f"del_hist_{row_id}", help="Delete this query"):
-        delete_history_item(row_id)
-        st.rerun()
+if ask and query:
+
+    answer = ""
+
+    # -------- SINGLE --------
+    if mode == "Single PDF Q&A":
+        texts, index = st.session_state.get("single_store", ([], None))
+
+        if not texts:
+            st.error("Upload PDF first")
+        else:
+            data = query_rag(query, texts, index, 5)
+            answer = data[0][0][:700] if data else "Not found"
+            st.write(answer)
+
+    # -------- MULTI --------
+    elif mode == "Upload 2 PDFs (Multi-Doc)":
+        texts, index = st.session_state.get("multi_store", ([], None))
+
+        if not texts:
+            st.error("Upload both PDFs")
+        else:
+            data = query_rag(query, texts, index, 5)
+            answer = data[0][0][:700] if data else "Not found"
+            st.write(answer)
+
+    # -------- COMPARE --------
+    elif mode == "Compare 2 PDFs":
+        texts_a, index_a = st.session_state.get("A_store", ([], None))
+        texts_b, index_b = st.session_state.get("B_store", ([], None))
+
+        if not texts_a or not texts_b:
+            st.error("Upload both PDFs")
+        else:
+            data_a = query_rag(query, texts_a, index_a, 5)
+            data_b = query_rag(query, texts_b, index_b, 5)
+
+            ans_a = data_a[0][0][:500] if data_a else "No result"
+            ans_b = data_b[0][0][:500] if data_b else "No result"
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Answer A")
+                st.write(ans_a)
+            with col2:
+                st.subheader("Answer B")
+                st.write(ans_b)
+
+            answer = f"A: {ans_a[:100]} | B: {ans_b[:100]}"
+
+    # ===== SAVE HISTORY =====
+    if answer:
+        st.session_state.history.insert(0, {"q": query, "a": answer})
 
 stats = get_feedback_stats()
 st.sidebar.markdown("---")
