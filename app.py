@@ -3,21 +3,26 @@ import re
 from datetime import datetime
 
 import streamlit as st
-from db import init_db
-init_db()
-# ================= HISTORY INIT =================
-if "history" not in st.session_state:
-    st.session_state.history = []
 
+# ================= DB INIT =================
 from db import (
+    init_db,
     clear_history,
     delete_history_item,
     get_feedback_stats,
-    get_history_with_ids,
+    get_history,   # ✅ FIX: use correct function name
     save_feedback,
     save_query,
 )
+
+init_db()
+
+# ================= RAG =================
 from rag_pipeline import process_pdf, query_rag
+
+# ================= SESSION STATE =================
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 st.set_page_config(page_title="RAGNova X", page_icon="🧠", layout="wide")
 
@@ -244,85 +249,7 @@ else:
 if st.sidebar.button("🗑 Clear All History"):
     st.session_state.history = []
     st.rerun()
-    # ================= QUERY INPUT =================
-query = st.text_input("Ask question", key="query_input")
-ask = st.button("Ask")
-
-if ask and query:
-
-    answer = ""
-
-    # -------- SINGLE --------
-    if mode == "Single PDF Q&A":
-        texts, index = st.session_state.get("single_store", ([], None))
-
-        if not texts:
-            st.error("Upload PDF first")
-        else:
-            data = query_rag(query, texts, index, 5)
-            answer = data[0][0][:700] if data else "Not found"
-            st.write(answer)
-
-    # -------- MULTI --------
-    elif mode == "Upload 2 PDFs (Multi-Doc)":
-        texts, index = st.session_state.get("multi_store", ([], None))
-
-        if not texts:
-            st.error("Upload both PDFs")
-        else:
-            data = query_rag(query, texts, index, 5)
-            answer = data[0][0][:700] if data else "Not found"
-            st.write(answer)
-
-    # -------- COMPARE --------
-    elif mode == "Compare 2 PDFs":
-        texts_a, index_a = st.session_state.get("A_store", ([], None))
-        texts_b, index_b = st.session_state.get("B_store", ([], None))
-
-        if not texts_a or not texts_b:
-            st.error("Upload both PDFs")
-        else:
-            data_a = query_rag(query, texts_a, index_a, 5)
-            data_b = query_rag(query, texts_b, index_b, 5)
-
-            ans_a = data_a[0][0][:500] if data_a else "No result"
-            ans_b = data_b[0][0][:500] if data_b else "No result"
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.subheader("Answer A")
-                st.write(ans_a)
-            with col2:
-                st.subheader("Answer B")
-                st.write(ans_b)
-
-            answer = f"A: {ans_a[:100]} | B: {ans_b[:100]}"
-
-    # ===== SAVE HISTORY =====
-    if answer:
-        st.session_state.history.insert(0, {"q": query, "a": answer})
-
-stats = get_feedback_stats()
-st.sidebar.markdown("---")
-st.sidebar.subheader("Insights")
-st.sidebar.write(f"Total queries: {stats['total_queries']}")
-st.sidebar.write(f"Feedback count: {stats['total_feedback']}")
-st.sidebar.write(f"Positive rate: {stats['positive_rate']}%")
-if stats["top_terms"]:
-    st.sidebar.write("Top terms:")
-    for term, count in stats["top_terms"]:
-        st.sidebar.write(f"- {term} ({count})")
-
-# Main top stats
-s1, s2, s3, s4 = st.columns(4)
-s1.markdown(f"<div class='stat-badge'><b>Chunk Size</b><br>{chunk_size}</div>", unsafe_allow_html=True)
-s2.markdown(f"<div class='stat-badge'><b>Overlap</b><br>{chunk_overlap}</div>", unsafe_allow_html=True)
-s3.markdown(f"<div class='stat-badge'><b>Top-K</b><br>{top_k}</div>", unsafe_allow_html=True)
-s4.markdown(
-    f"<div class='stat-badge'><b>Positive Feedback</b><br>{stats['positive_rate']}%</div>",
-    unsafe_allow_html=True,
-)
-# ================= MODE =================
+  # ================= MODE =================
 mode = st.radio(
     "Workspace Mode",
     ["Single PDF Q&A", "Upload 2 PDFs (Multi-Doc)", "Compare 2 PDFs"],
@@ -332,6 +259,9 @@ mode = st.radio(
 # ================= QUICK PROMPTS =================
 st.write("Quick prompts")
 q1, q2, q3, q4 = st.columns(4)
+
+if "query_input" not in st.session_state:
+    st.session_state.query_input = ""
 
 if q1.button("Summarize key points"):
     st.session_state.query_input = "Summarize the key points from this document."
@@ -348,11 +278,9 @@ file_a, file_b = None, None
 # ================= UPLOAD =================
 st.subheader("📂 Upload PDFs")
 
-# -------- SINGLE --------
 if mode == "Single PDF Q&A":
     file_a = st.file_uploader("Upload PDF", type="pdf", key="single_pdf")
 
-# -------- MULTI DOC --------
 elif mode == "Upload 2 PDFs (Multi-Doc)":
     col1, col2 = st.columns(2)
 
@@ -364,7 +292,6 @@ elif mode == "Upload 2 PDFs (Multi-Doc)":
     if not file_a or not file_b:
         st.info("Upload both PDFs to query across documents.")
 
-# -------- COMPARE --------
 elif mode == "Compare 2 PDFs":
     col1, col2 = st.columns(2)
 
@@ -378,17 +305,14 @@ elif mode == "Compare 2 PDFs":
 
 # ================= PROCESSING =================
 
-# -------- SINGLE --------
 if mode == "Single PDF Q&A" and file_a:
     with open("temp_single.pdf", "wb") as f:
         f.write(file_a.read())
 
     texts, index = process_pdf("temp_single.pdf", chunk_size, chunk_overlap)
     st.session_state["single_store"] = (texts, index)
-
     st.success(f"Processed: {len(texts)} chunks")
 
-# -------- MULTI DOC --------
 elif mode == "Upload 2 PDFs (Multi-Doc)" and file_a and file_b:
     with open("temp_a.pdf", "wb") as f:
         f.write(file_a.read())
@@ -398,15 +322,12 @@ elif mode == "Upload 2 PDFs (Multi-Doc)" and file_a and file_b:
     texts_a, index_a = process_pdf("temp_a.pdf", chunk_size, chunk_overlap)
     texts_b, index_b = process_pdf("temp_b.pdf", chunk_size, chunk_overlap)
 
-    # Merge both docs
     texts = texts_a + texts_b
-    index = index_a  # (or rebuild combined index if needed)
+    index = index_a
 
     st.session_state["multi_store"] = (texts, index)
-
     st.success("Both PDFs merged & processed")
 
-# -------- COMPARE --------
 elif mode == "Compare 2 PDFs" and file_a and file_b:
     with open("temp_a.pdf", "wb") as f:
         f.write(file_a.read())
@@ -421,49 +342,86 @@ elif mode == "Compare 2 PDFs" and file_a and file_b:
 
     st.success("Both PDFs ready for comparison")
 
+# ================= QUERY INPUT =================
+query = st.text_input("Ask question", key="query_input")
+ask = st.button("Ask")
 
+# ================= QUERY LOGIC =================
+if ask and query:
 
-    # -------- SINGLE --------
-    if mode == "Single PDF Q&A":
-        texts, index = st.session_state.get("single_store", ([], None))
+    answer = ""
 
-        if not texts:
-            st.error("Upload PDF first")
-        else:
-            data = query_rag(query, texts, index, 5)
-            answer = data[0][0][:700] if data else "Not found"
-            st.write(answer)
+    with st.spinner("Thinking..."):
 
-    # -------- MULTI --------
-    elif mode == "Upload 2 PDFs (Multi-Doc)":
-        texts, index = st.session_state.get("multi_store", ([], None))
+        if mode == "Single PDF Q&A":
+            texts, index = st.session_state.get("single_store", ([], None))
 
-        if not texts:
-            st.error("Upload both PDFs")
-        else:
-            data = query_rag(query, texts, index, 5)
-            answer = data[0][0][:700] if data else "Not found"
-            st.write(answer)
+            if not texts:
+                st.error("Upload PDF first")
+            else:
+                data = query_rag(query, texts, index, top_k)
+                answer = data[0][0][:700] if data else "Not found"
+                st.write(answer)
 
-    # -------- COMPARE --------
-    elif mode == "Compare 2 PDFs":
-        texts_a, index_a = st.session_state.get("A_store", ([], None))
-        texts_b, index_b = st.session_state.get("B_store", ([], None))
+        elif mode == "Upload 2 PDFs (Multi-Doc)":
+            texts, index = st.session_state.get("multi_store", ([], None))
 
-        if not texts_a or not texts_b:
-            st.error("Upload both PDFs")
-        else:
-            data_a = query_rag(query, texts_a, index_a, 5)
-            data_b = query_rag(query, texts_b, index_b, 5)
+            if not texts:
+                st.error("Upload both PDFs")
+            else:
+                data = query_rag(query, texts, index, top_k)
+                answer = data[0][0][:700] if data else "Not found"
+                st.write(answer)
 
-            ans_a = data_a[0][0][:500] if data_a else "No result"
-            ans_b = data_b[0][0][:500] if data_b else "No result"
+        elif mode == "Compare 2 PDFs":
+            texts_a, index_a = st.session_state.get("A_store", ([], None))
+            texts_b, index_b = st.session_state.get("B_store", ([], None))
 
-            col1, col2 = st.columns(2)
-            with col1:
-                st.subheader("Answer A")
-                st.write(ans_a)
+            if not texts_a or not texts_b:
+                st.error("Upload both PDFs")
+            else:
+                data_a = query_rag(query, texts_a, index_a, top_k)
+                data_b = query_rag(query, texts_b, index_b, top_k)
 
-            with col2:
-                st.subheader("Answer B")
-                st.write(ans_b)
+                ans_a = data_a[0][0][:500] if data_a else "No result"
+                ans_b = data_b[0][0][:500] if data_b else "No result"
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Answer A")
+                    st.write(ans_a)
+                with col2:
+                    st.subheader("Answer B")
+                    st.write(ans_b)
+
+                answer = f"A: {ans_a[:100]} | B: {ans_b[:100]}"
+
+    # ===== SAVE HISTORY (NO DUPLICATES) =====
+    if answer and answer.strip() != "":
+        if not st.session_state.history or st.session_state.history[0]["q"] != query:
+            st.session_state.history.insert(0, {"q": query, "a": answer})
+            save_query(query, answer)
+
+# ================= STATS =================
+stats = get_feedback_stats()
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("Insights")
+st.sidebar.write(f"Total queries: {stats['total_queries']}")
+st.sidebar.write(f"Feedback count: {stats['total_feedback']}")
+st.sidebar.write(f"Positive rate: {stats['positive_rate']}%")
+
+if stats["top_terms"]:
+    st.sidebar.write("Top terms:")
+    for term, count in stats["top_terms"]:
+        st.sidebar.write(f"- {term} ({count})")
+
+# ================= TOP STATS =================
+s1, s2, s3, s4 = st.columns(4)
+s1.markdown(f"<div class='stat-badge'><b>Chunk Size</b><br>{chunk_size}</div>", unsafe_allow_html=True)
+s2.markdown(f"<div class='stat-badge'><b>Overlap</b><br>{chunk_overlap}</div>", unsafe_allow_html=True)
+s3.markdown(f"<div class='stat-badge'><b>Top-K</b><br>{top_k}</div>", unsafe_allow_html=True)
+s4.markdown(
+    f"<div class='stat-badge'><b>Positive Feedback</b><br>{stats['positive_rate']}%</div>",
+    unsafe_allow_html=True,
+)
