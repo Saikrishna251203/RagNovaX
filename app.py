@@ -3,6 +3,8 @@ import re
 from datetime import datetime
 
 import streamlit as st
+from db import init_db
+init_db()
 # ================= HISTORY INIT =================
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -419,7 +421,7 @@ elif mode == "Compare 2 PDFs" and file_a and file_b:
 
     st.success("Both PDFs ready for comparison")
 
-# ================= QUERY =================
+
 
     # -------- SINGLE --------
     if mode == "Single PDF Q&A":

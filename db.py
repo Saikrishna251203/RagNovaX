@@ -1,20 +1,40 @@
 import sqlite3
 from collections import Counter
 
+# ================= INIT DB =================
+import sqlite3
+
+def init_db():
+    conn = sqlite3.connect("app.db", check_same_thread=False)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query TEXT,
+            answer TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
 conn = sqlite3.connect("history.db", check_same_thread=False)
 cur = conn.cursor()
 
-cur.execute("CREATE TABLE IF NOT EXISTS history(query TEXT)")
-cur.execute(
-    """
-    CREATE TABLE IF NOT EXISTS feedback(
-        query TEXT,
-        answer TEXT,
-        rating TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    """
-)
+def get_feedback_stats():
+    conn = sqlite3.connect("app.db", check_same_thread=False)
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT COUNT(*) FROM history")
+        count = cur.fetchone()[0]
+    except:
+        count = 0
+
+    conn.close()
+    return count
 
 def save_query(q):
     cur.execute("INSERT INTO history VALUES (?)", (q,))
