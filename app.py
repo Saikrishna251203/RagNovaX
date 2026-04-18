@@ -267,14 +267,7 @@ file = None
 file_a = None
 file_b = None
 
-# ================= MODE SELECTION =================
-# ================= MODE SELECTION =================
-st.subheader("📌 Select Mode")
 
-mode = st.radio(
-    "Choose Workspace Mode:",
-    ["Single Document Q&A", "Compare Two PDFs"]
-)
 
 # ================= FILE UPLOAD =================
 st.subheader("📂 Upload PDFs")
