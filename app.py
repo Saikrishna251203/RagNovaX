@@ -420,10 +420,6 @@ elif mode == "Compare 2 PDFs" and file_a and file_b:
     st.success("Both PDFs ready for comparison")
 
 # ================= QUERY =================
-query = st.text_input("Ask question", key="query_input")
-ask = st.button("Ask")
-
-if ask and query:
 
     # -------- SINGLE --------
     if mode == "Single PDF Q&A":
