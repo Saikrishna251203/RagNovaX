@@ -268,10 +268,28 @@ file_a = None
 file_b = None
 
 # ================= MODE SELECTION =================
-mode = st.radio("Select Mode", ["Single Document Q&A", "Compare Two PDFs"])
+# ================= MODE SELECTION =================
+st.subheader("📌 Select Mode")
 
-chunk_size = st.slider("Chunk Size", 200, 2000, 1000)
-chunk_overlap = st.slider("Chunk Overlap", 0, 500, 100)
+mode = st.radio(
+    "Choose Workspace Mode:",
+    ["Single Document Q&A", "Compare Two PDFs"]
+)
+
+# ================= FILE UPLOAD =================
+st.subheader("📂 Upload PDFs")
+
+if mode == "Single Document Q&A":
+    file_a = st.file_uploader("Upload PDF", type="pdf", key="single")
+
+elif mode == "Compare Two PDFs":
+    col1, col2 = st.columns(2)
+
+    with col1:
+        file_a = st.file_uploader("Upload PDF A", type="pdf", key="pdf_a")
+
+    with col2:
+        file_b = st.file_uploader("Upload PDF B", type="pdf", key="pdf_b")
 
 
 # ================= SINGLE DOCUMENT MODE =================
