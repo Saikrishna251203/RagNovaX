@@ -59,6 +59,16 @@ Organizations and individuals often struggle to extract meaningful insights from
 - Save one best answer snapshot (latest highlight).
 - Export that highlight as JSON.
 
+  ## Multi-Document Intelligence
+- Seamlessly ingest multiple PDFs (2 docs) into a unified retrieval pipeline.
+- Enables cross-document reasoning and combined insights.
+- Automatically merges embeddings for efficient semantic search.
+- Delivers context-aware answers spanning multiple sources.
+- Designed for real-world use cases like:
+- Financial report comparison
+- Research paper synthesis
+- Business document analysis
+
 ---
 
 ## ⚙️ Parameter Notes (Beginner Friendly)
