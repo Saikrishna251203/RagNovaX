@@ -242,6 +242,9 @@ else:
 if st.sidebar.button("🗑 Clear All History"):
     st.session_state.history = []
     st.rerun()
+    # ================= QUERY INPUT =================
+query = st.text_input("Ask question", key="query_input")
+ask = st.button("Ask")
 
 if ask and query:
 
